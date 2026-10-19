@@ -1,0 +1,23 @@
+.feedback-list h3 {
+    margin-bottom: 20px;
+}
+.feedback-list {
+    background: #e0e0e0;
+    padding: 20px;
+    border-radius: 10px;
+    overflow-y: auto;
+}
+.feedback-container {
+    height: 400px;
+    overflow-y: auto;
+}
+.no-feedbacks-message {
+    text-align: center;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #808080;
+    font-size: 18px;
+    font-family: "Franklin Gothic Book", sans-serif;
+}

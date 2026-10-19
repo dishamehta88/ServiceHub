@@ -1,0 +1,23 @@
+.wishlist {
+  background-color: #F8F7FF;
+  padding-left: 20px;
+  padding-right: 20px;
+  height: 90vh;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
+.child1{
+  width: 70%;
+  max-height: 80vh;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  padding-top: 12px;
+}
+
+.child2 {
+  width: 30%;
+  max-height: 800px;
+}

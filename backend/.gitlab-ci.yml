@@ -1,0 +1,96 @@
+stages:
+  - build
+  - test
+  - quality
+  - publish
+  - deploy
+
+build:
+  stage: build
+  image: maven:latest
+  script:
+    - echo "Backend build started..."
+    - cd backend/
+    - mvn clean package
+    - echo "Backend build completed"
+  artifacts:
+    paths:
+      - backend/target/ServiceHub-0.0.1-SNAPSHOT.jar
+
+test:
+  stage: test
+  image: maven:latest
+  cache:
+    key: ${CI_PROJECT_NAME}
+    paths:
+      - .m2/repository
+  script:
+    - echo "Testing Backend"
+    - cd backend/
+    - mvn test
+    - echo "Done Testing Backend"
+  allow_failure: false
+
+quality:
+  stage: quality
+  image: openjdk:17
+  script:
+    - echo "Code smells identification started..."
+    - cd backend
+    - rm -rf smells || true
+    - mkdir smells/
+    - java -jar $CI_PROJECT_DIR/backend/.gitlab/DesigniteJava.jar -i $CI_PROJECT_DIR/backend/ -o $CI_PROJECT_DIR/smells/ -d
+  artifacts:
+    paths:
+      - smells/*.csv
+
+publish:
+  stage: publish
+  image: docker:stable
+  services:
+    - name: docker:20-dind
+      alias: docker
+      command: ["--tls=false"]
+  tags:
+    - dalfcs_docker_kvm
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - echo "$DOCKER_PWD" | docker login -u "$DOCKER_USER_NAME" --password-stdin
+    - docker info
+  script:
+    - echo "Checking Docker version"
+    - docker version
+    - echo "Checking Docker info"
+    - docker info
+    - docker build -t docker.io/$DOCKER_USER_NAME/backend:$CI_COMMIT_SHORT_SHA $CI_PROJECT_DIR/backend/
+    - docker push docker.io/$DOCKER_USER_NAME/backend:$CI_COMMIT_SHORT_SHA
+  only:
+    - main
+
+deploy:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - dalfcs_docker_kvm
+  script:
+    - cd backend/
+    - echo "Deploying Backend..."
+    - apk update && apk add openssh-client sshpass
+    - sudo apt-get install sshpass || true
+    - which ssh || true
+    - which sshpass || true
+
+    - sshpass -p $VM_PWD ssh -o StrictHostKeyChecking=no student@$SERVER_NAME "docker login -u $DOCKER_USER_NAME -p $DOCKER_PWD docker.io"
+    - sshpass -p $VM_PWD ssh -o StrictHostKeyChecking=no student@$SERVER_NAME "docker pull docker.io/$DOCKER_USER_NAME/backend:$CI_COMMIT_SHORT_SHA"
+    - sshpass -p $VM_PWD ssh -o StrictHostKeyChecking=no student@$SERVER_NAME "docker container rm -f backend || true"
+    - sshpass -p $VM_PWD ssh -o StrictHostKeyChecking=no student@$SERVER_NAME "docker run -d -p 8080:8080 --name backend docker.io/$DOCKER_USER_NAME/backend:$CI_COMMIT_SHORT_SHA"
+    - sshpass -p $VM_PWD ssh -o StrictHostKeyChecking=no student@$SERVER_NAME "docker images -a"
+    - sshpass -p $VM_PWD ssh -o StrictHostKeyChecking=no student@$SERVER_NAME "docker container ls -a"
+  environment:
+    name: production_backend
+    url: http://172.17.1.12:8080
+  only:
+    - main

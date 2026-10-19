@@ -1,0 +1,52 @@
+# Datasource URL's for different environment
+# DEV - jdbc:mysql://db-5308.cs.dal.ca:3306/CSCI5308_8_DEVINT?useSSL=false&allowPublicKeyRetrieval=true
+# TEST - jdbc:mysql://db-5308.cs.dal.ca/CSCI5308_8_TEST?useSSL=false&allowPublicKeyRetrieval=true
+# PROD - jdbc:mysql://db-5308.cs.dal.ca/CSCI5308_8_PRODUCTION?useSSL=false&allowPublicKeyRetrieval=true
+
+# Datasource username's for different environment
+# DEV - CSCI5308_8_DEVINT_USER
+# TEST - CSCI5308_8_TEST_USER
+# PROD - CSCI5308_8_PRODUCTION_USER
+
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: noreplyservicehub@gmail.com
+    password: nrco fkda imwm hobq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  datasource:
+    url: jdbc:mysql://db-5308.cs.dal.ca/CSCI5308_8_PRODUCTION?useSSL=false&allowPublicKeyRetrieval=true
+    username: CSCI5308_8_PRODUCTION_USER
+    password: Aneisiru6b
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  application:
+    name: ServiceHub
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+email:
+  frontend-port: ${FRONTEND_PORT:3000}
+
+upload:
+  path: backend/uploads
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method
+    enabled: true
